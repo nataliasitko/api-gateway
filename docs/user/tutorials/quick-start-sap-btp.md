@@ -1,17 +1,20 @@
-# Quick Start
+# Quick Start: Expose and Secure a Sample Workload
 
-Follow the steps to get started with the open-source API Gateway module.
+This tutorial is dedicated for SAP BTP, Kyma runtime users. Follow the steps to get started with the API Gateway module.
 
 ## Prerequisites
 
-- You have installed the Istio and API Gateway modules in your Kubernetes cluster. See [Quick Install](https://kyma-project.io/#/02-get-started/01-quick-install).
+- You have access to Kyma dashboard. Alternatively, to use CLI instructions, you must install [kubectl](https://help.sap.com/docs/btp/sap-business-technology-platform-internal/access-kyma-instance-using-kubectl?locale=en-US&state=DRAFT&version=Internal&comment_id=22217515&show_comments=true) and [curl](https://curl.se/).
+- You have added the Istio and API Gateway modules to your SAP BTP, Kyma runtime instance. See [Add and Delete ...]().
 - You have prepared a domain for exposing a sample workload.
 
 For the purpose of this tutorial, you can use a Kyma domain instead of your custom domain. If you use a k3d cluster, your kyma domain is `local.kyma.dev`. If you use a Gardener cluster, you can check the domain by running ... .
 
 ## Context
-This Quick Start guide shows how to create a sample HTTPBin workload and expose it to the internet using the APIRule custom resource (CR). 
-
+This Quick Start guide shows how to:
+- create a sample HTTPBin workload,
+- expose the sample workload to the internet using the APIRule custom resource (CR),
+- secure the workload using SAP Cloud Identity Services.
 
 ## Procedure
 
