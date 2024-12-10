@@ -10,6 +10,16 @@ APIGateway Controller listens for. To get the up-to-date CRD in the `yaml` forma
 kubectl get crd apirules.gateway.kyma-project.io -o yaml
 ```
 
+## Status Codes
+
+The APIRule CR includes status information for all created sub-resources. However, the field **apiRuleStatus** specifically reflects the status of the controller's reconciliation.
+
+| Code          | Description                               |
+|---------------|-------------------------------------------|
+| **OK**        | Controller finished reconciliation.       |
+| **SKIPPED**   | Controller skipped reconciliation.        |
+| **ERROR**     | An error occurred during reconciliation.  |
+
 ## Specification of APIRule v1beta1 Custom Resource
 
 This table lists all parameters of APIRule CRD together with their descriptions:

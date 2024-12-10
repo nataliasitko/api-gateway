@@ -7,8 +7,8 @@ This tutorial shows how to expose an unsecured instance of the HTTPBin Service a
 
 ## Prerequisites
 
-* [Deploy a sample HTTPBin Service](../01-00-create-workload.md).
-* [Set up your custom domain](../01-10-setup-custom-domain-for-workload.md) or use a Kyma domain instead.
+* You have a deployed workload.
+* You have [set up your custom domain](../01-10-setup-custom-domain-for-workload.md). Alternatively, you can use the default domain of your Kyma cluster.
 
 ## Steps
 
@@ -86,11 +86,6 @@ This tutorial shows how to expose an unsecured instance of the HTTPBin Service a
     ```
 
 <!-- tabs:end -->
-> [!NOTE]
-> If you are using k3d, add `httpbin.kyma.local` to the entry with k3d IP in your system's `/etc/hosts` file.
-
-> [!NOTE]
-> If you don't specify a namespace for your Service, the default namespace is used.
 
 ### Access Your Workload
 
@@ -99,13 +94,13 @@ To access your HTTPBin Service, use [curl](https://curl.se).
 - Send a `GET` request to the HTTPBin Service.
 
   ```bash
-  curl -ik -X GET https://httpbin.$DOMAIN_TO_EXPOSE_WORKLOADS/ip
+  curl -ik -X GET https://httpbin.local.kyma.dev:30443/ip
   ```
   If successful, the call returns the `200 OK` response code.
 
 - Send a `POST` request to the HTTPBin Service.
 
   ```bash
-  curl -ik -X POST https://httpbin.$DOMAIN_TO_EXPOSE_WORKLOADS/post -d "test data"
+  curl -ik -X POST https://httpbin.local.kyma.dev:30443/post -d "test data"
   ```
   If successful, the call returns the `200 OK` response code.

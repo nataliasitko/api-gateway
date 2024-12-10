@@ -10,6 +10,33 @@ kubectl get crd apigateways.operator.kyma-project.io -o yaml
 
 You are only allowed to have one APIGateway CR. If there are multiple APIGateway CRs in the cluster, the oldest one reconciles the module. Any additional APIGateway CR is placed in the `Warning` state.
 
+## Status Codes
+
+|     Code     | Description                              |
+|:------------:|:-----------------------------------------|
+|   `Ready`    | Controller finished reconciliation.      |
+| `Processing` | Controller is reconciling resources.     |
+|  `Deleting`  | Controller is deleting resources.        |
+|   `Error`    | An error occurred during reconciliation. |
+|  `Warning`   | Controller is misconfigured.             |
+
+Conditions:
+
+| CR state   | Type  | Status  | Reason                           | Message                                                                      |
+|------------|-------|---------|----------------------------------|------------------------------------------------------------------------------|
+| `Ready`      | `Ready` | `Unknown` | ReconcileProcessing              | Reconciliation processing                                                    |
+| `Ready`      | `Ready` | `True`    | ReconcileSucceeded               | Reconciliation succeeded                                                     |
+| `Error`      | `Ready` | `False`   | ReconcileFailed                  | Reconciliation failed                                                        |
+| `Error`      | `Ready` | `False`   | OlderCRExists                    | API Gateway CR is not the oldest one and does not represent the module state |
+| `Error`      | `Ready` | `False`   | CustomResourceMisconfigured      | API Gateway CR has invalid configuration                                     |
+| `Error`      | `Ready` | `False`   | DependenciesMissing              | Module dependencies missing                                                  |
+| `Processing` | `Ready` | `False`   | KymaGatewayReconcileSucceeded    | Kyma Gateway reconciliation succeeded                                        |
+| `Error`      | `Ready` | `False`   | KymaGatewayReconcileFailed       | Kyma Gateway reconciliation failed                                           |
+| `Warning`    | `Ready` | `False`   | KymaGatewayDeletionBlocked       | Kyma Gateway deletion blocked because of the existing custom resources: ...  |
+| `Processing` | `Ready` | `False`   | OathkeeperReconcileSucceeded     | Ory Oathkeeper reconciliation succeeded                                      |
+| `Error`      | `Ready` | `False`   | OathkeeperReconcileFailed        | Ory Oathkeeper reconciliation failed                                         |
+| `Warning`    | `Ready` | `False`   | DeletionBlockedExistingResources | API Gateway deletion blocked because of the existing custom resources: ...   |
+
 ## Specification <!-- {docsify-ignore} -->
 
 This table lists the parameters of the given resource together with their descriptions:

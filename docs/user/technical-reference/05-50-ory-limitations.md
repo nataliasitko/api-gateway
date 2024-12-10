@@ -1,3 +1,17 @@
+
+## Controller Limitations
+
+APIRule Controller relies on Istio and Ory custom resources to provide routing capabilities. In terms of persistence, the controller depends only on APIRules stored in the Kubernetes cluster.
+In terms of the resource configuration, the following requirements are set on APIGateway Controller:
+
+|          | CPU  | Memory |
+|----------|------|--------|
+| Limits   | 100m | 128Mi  |
+| Requests | 10m  | 64Mi   |
+
+The number of APIRules you can create is not limited.
+
+
 # Ory Limitations
 
 ## Resource Configuration

@@ -4,8 +4,7 @@ This tutorial shows how to set up a TLS Gateway in simple mode.
 
 ## Prerequisites
 
-* [Deploy a sample HTTPBin Service](./01-00-create-workload.md).
-* [Set up your custom domain](./01-10-setup-custom-domain-for-workload.md).
+You have [set up your custom domain](./01-10-setup-custom-domain-for-workload.md).
 
 ## Steps
 

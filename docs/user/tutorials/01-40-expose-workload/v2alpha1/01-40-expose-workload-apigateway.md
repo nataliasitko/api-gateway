@@ -7,29 +7,18 @@ This tutorial shows how to expose an unsecured instance of the HTTPBin Service a
 
 ## Prerequisites
 
-* [Deploy a sample HTTPBin Service](../../01-00-create-workload.md).
-* [Set up your custom domain](../../01-10-setup-custom-domain-for-workload.md) or use a Kyma domain instead.
+You have [set up your custom domain](../../01-10-setup-custom-domain-for-workload.md). Alternatively, you can use the domain of your Kyma cluster and the default Gateway `kyma-system/kyma-gateway`. To check the name of your Kyma domain, run: ...
 
 ## Steps
 
 ### Expose Your Workload
 
-1. Depending on whether you use your custom domain or a Kyma domain, export the necessary values as environment variables:
-
-  <!-- tabs:start -->
-  #### **Custom Domain**
+1. Export the name of your domain and the name of your Gateway:
 
   ```bash
   export DOMAIN_TO_EXPOSE_WORKLOADS={DOMAIN_NAME}
-  export GATEWAY=$NAMESPACE/httpbin-gateway
+  export GATEWAY={GATEWAY_NAMESPACE}/{GATEWAY_NAME}
   ```
-  #### **Kyma Domain**
-
-  ```bash
-  export DOMAIN_TO_EXPOSE_WORKLOADS={KYMA_DOMAIN_NAME}
-  export GATEWAY=kyma-system/kyma-gateway
-  ```
-  <!-- tabs:end -->
 
 2. To expose an instance of the HTTPBin Service, create the following APIRule:
 
@@ -57,12 +46,6 @@ This tutorial shows how to expose an unsecured instance of the HTTPBin Service a
           noAuth: true
     EOF
     ```
-
-> [!NOTE]
-> If you are using k3d, add `httpbin.kyma.local` to the entry with k3d IP in your system's `/etc/hosts` file.
-
-> [!NOTE]
-> If you don't specify a namespace for your Service, the default namespace is used.
 
 ### Access Your Workload
 

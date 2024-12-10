@@ -2,13 +2,10 @@
 
 This tutorial shows how to set up a custom domain and prepare a certificate required for exposing a workload. It uses the Gardener [External DNS Management](https://github.com/gardener/external-dns-management) and [Certificate Management](https://github.com/gardener/cert-management) components.
 
-> [!NOTE]
-> Skip this tutorial if you use a Kyma domain instead of your custom domain.
 
 ## Prerequisites
 
 * You have a custom domain.
-* [Deploy a sample HTTPBin Service](./01-00-create-workload.md).
 * If you use a cluster not managed by Gardener, install the [External DNS Management](https://github.com/gardener/external-dns-management#quick-start) and [Certificate Management](https://github.com/gardener/cert-management) components manually in a dedicated namespace. SAP BTP, Kyma runtime clusters are managed by Gardener, so you are not required to install any additional components.
 
 ## Steps
