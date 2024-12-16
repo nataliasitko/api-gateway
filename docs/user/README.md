@@ -30,11 +30,18 @@ APIGateway Controller manages the installation of [Ory Oathkeeper](https://www.o
 
 APIRule Controller uses [Ory Oathkeeper](https://www.ory.sh/docs/oathkeeper) and [Istio](https://istio.io/) resources to expose and secure APIs.
 
+### RateLimit Controller
+
+RateLimit Controller streamlines the implementation of rate limiting, providing means to effectively manage service traffic. It translates configuration specified in RateLimit CR into EnvoyFilters, which Istio uses to enforce rate limiting at the Envoy proxy level. 
+
+
 ## API/Custom Resource Definitions
 
-The apigateways.operator.kyma-project.io CustomResourceDefinition (CRD) describes the Istio CR that APIGateway Controller uses to manage the module and its resources. See [APIGateway Custom Resource](./custom-resources/apigateway/04-00-apigateway-custom-resource.md).
+The apigateways.operator.kyma-project.io CustomResourceDefinition (CRD) describes the APIGateway CR that APIGateway Controller uses to manage the module and its resources. See [APIGateway Custom Resource](./custom-resources/apigateway/04-00-apigateway-custom-resource.md).
 
-The apirules.operator.kyma-project.io CustomResourceDefinition (CRD) describes the APIRule CR that APIRule Controller uses to expose and secure APIs. See [APIRule Custom Resource](./custom-resources/apirule/README.md).
+The apirules.operator.kyma-project.io CRD describes the APIRule CR that APIRule Controller uses to expose and secure APIs. See [APIRule Custom Resource](./custom-resources/apirule/README.md).
+
+The ratelimits.operator.kyma-project.io CRD describes the RateLimit CR that RateLimit Controller uses to configure rate limiting functionality on the service mesh level. See [APIRule Custom Resource](./custom-resources/apirule/README.md).
 
 ## Resource Consumption
 

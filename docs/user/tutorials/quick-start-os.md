@@ -7,7 +7,7 @@ Follow the steps to get started with the open-source API Gateway module.
 You have created a k3d cluster and added the Istio and API Gateway modules. See [Quick Install](https://kyma-project.io/#/02-get-started/01-quick-install).
 
 ## Context
-This quick start guide shows how to create a sample HTTPBin workload and expose it to the internet using the APIRule custom resource (CR). It uses a wildcard public domain `*.local.kyma.dev`.  
+This quick start guide shows how to create a sample HTTPBin workload and expose it to the internet using the APIRule custom resource (CR). For this purpose, the guide uses a wildcard public domain `*.local.kyma.dev`.
 
 ## Procedure
 
@@ -17,7 +17,7 @@ This quick start guide shows how to create a sample HTTPBin workload and expose 
 #### **Kyma Dashboard**
 
 1. In Kyma dashboard, go to **Namespaces** and choose **Create**.
-1. Use the name `api-gateway-tutorial` and switch the toggle to enable Istio sidecar proxy injection.
+1. Provide the name `api-gateway-tutorial` and switch the toggle to enable Istio sidecar proxy injection.
 2. Choose **Create**.
 3. In the created namespace, go to **Workloads > Deployemnts** and choose **Create**.
 1. Select the HTTPBin template.
@@ -120,22 +120,22 @@ This quick start guide shows how to create a sample HTTPBin workload and expose 
 <!-- tabs:start -->
 #### **Kyma Dashboard**
 
-1. In  `api-gateway-tutorial` namespace, go to **Discovery and Network > API Rules**.
+1. In the `api-gateway-tutorial` namespace, go to **Discovery and Network > API Rules**.
 2. Choose **Create**.
-3. Provide the following configuration details.
+3. Provide the following details.
   - **Name**: `httpbin`
-  - In the `Service` section, select:
+  - In the `Service` section, add:
     - **Service Name**: `httpbin`
     - **Port**: `8000`
-  - In the `Service` section, add:
+  - In the **Service** section, add:
     - **Namespace**: `api-gateway-tutorial`
     - **Name**: `kyma-gateway`
     - **Host**: `httpbin.local.kyma.dev`
-  - In the `Rules` section, add two Rules. Use the following configuration for the first one:
+  - In the **Rules** section, use the following configuration for the first Rule:
     - **Path**: `/.*`
     - **Handler**: `no_auth`
     - **Methods**: `GET`
-  - Use the following configuration for the second Rule:
+  - Create one more Rule with the configuration:
     - **Path**: `/post`
     - **Handler**: `no_auth`
     - **Methods**: `POST`
