@@ -7,45 +7,80 @@ This tutorial shows how to expose an unsecured instance of the HTTPBin Service a
 
 ## Prerequisites
 
-You have [set up your custom domain](../../01-10-setup-custom-domain-for-workload.md). Alternatively, you can use the domain of your Kyma cluster and the default Gateway `kyma-system/kyma-gateway`. To check the name of your Kyma domain, run: ...
+- You have deployed a Service.
+- You have set up your custom domain and a TLS Gateway. See [Set Up Your Custom Domain](../../01-10-setup-custom-domain-for-workload.md) and Set Up a TLS Gateway. Alternatively, you can use the default domain of your Kyma cluster and the default Gateway `kyma-system/kyma-gateway`. To check the name of your cluster's Kyma domain, run: ...
 
 ## Steps
 
 ### Expose Your Workload
 
-1. Export the name of your domain and the name of your Gateway:
+  <!-- tabs:start -->
+  #### **Kyma Dashboard**
 
-  ```bash
-  export DOMAIN_TO_EXPOSE_WORKLOADS={DOMAIN_NAME}
-  export GATEWAY={GATEWAY_NAMESPACE}/{GATEWAY_NAME}
-  ```
+  1. Go to **Discovery and Network > API Rules**.
+  2. Choose **Create**.
+  3. Provide the following configuration details.
+    - Add the APIRule's name in the **Name** field.
+    - In the `Service` section, add the Service's name and port.
+    - To fill in the `Gateway` section, use these values:
+      - **Namespace** is the name of the namespace in which you deployed an instance of the HTTPBin Service. If you use a Kyma domain, select the `kyma-system` namespace.
+      - **Name** is the Gateway's name. If you use a Kyma domain, select `kyma-gateway`.
+      - In the **Host** field, enter `httpbin.{DOMAIN_TO_EXPORT_WORKLOADS}`. Replace the placeholder with the name of your domain.
+    - In the `Rules` section, add two Rules. Use the following configuration for the first one:
+      - **Path**: `/.*`
+      - **Handler**: `no_auth`
+      - **Methods**: `GET`
+    - Use the following configuration for the second Rule:
+      - **Path**: `/post`
+      - **Handler**: `no_auth`
+      - **Methods**: `POST`
 
-2. To expose an instance of the HTTPBin Service, create the following APIRule:
+  4. To create the APIRule, select **Create**.
+  
+  #### **kubectl**
 
-    ```bash
-    cat <<EOF | kubectl apply -f -
-    apiVersion: gateway.kyma-project.io/v2alpha1
-    kind: APIRule
-    metadata:
-      name: httpbin
-      namespace: $NAMESPACE
-    spec:
-      hosts:
-        - httpbin.$DOMAIN_TO_EXPOSE_WORKLOADS
-      service:
-        name: $SERVICE_NAME
+  1. Export the name of your Service and its namespace:
+
+      ```bash
+      export SERVICE={SERVICE_NAME}
+      export NAMESPACE={NAMESPACE_NAME}
+      ```
+
+  2. Export the name of your domain to expose workloads and the Gateway:
+
+      ```bash
+      export DOMAIN_TO_EXPOSE_WORKLOADS={DOMAIN_NAME}
+      export GATEWAY={GATEWAY_NAMESPACE}/{GATEWAY_NAME}
+      ```
+
+  3. To expose your Service, create an APIRule CR. You can adjust the following configuration according to your needs. For more information, see APIRule Custom Resource.
+
+      ```bash
+      cat <<EOF | kubectl apply -f -
+      apiVersion: gateway.kyma-project.io/v2alpha1
+      kind: APIRule
+      metadata:
+        name: httpbin
         namespace: $NAMESPACE
-        port: 8000
-      gateway: $GATEWAY
-      rules:
-        - path: /*
-          methods: ["GET"]
-          noAuth: true
-        - path: /post
-          methods: ["POST"]
-          noAuth: true
-    EOF
-    ```
+      spec:
+        hosts:
+          - httpbin.$DOMAIN_TO_EXPOSE_WORKLOADS
+        service:
+          name: $SERVICE_NAME
+          namespace: $NAMESPACE
+          port: 8000
+        gateway: $GATEWAY
+        rules:
+          - path: /*
+            methods: ["GET"]
+            noAuth: true
+          - path: /post
+            methods: ["POST"]
+            noAuth: true
+      EOF
+      ```
+
+  <!-- tabs:end -->
 
 ### Access Your Workload
 
