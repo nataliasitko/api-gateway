@@ -112,6 +112,10 @@ func runTestsuite(t *testing.T, testsuite testcontext.Testsuite) {
 		Name:                testsuite.Name(),
 		ScenarioInitializer: testsuite.InitScenarios,
 		TestSuiteInitializer: func(ctx *godog.TestSuiteContext) {
+			if testsuite.Name() != "v2alpha1" {
+				testsuite.InitScenarios(ctx.ScenarioContext())
+			}
+
 			ctx.BeforeSuite(func() {
 				log.Printf("Executing before suite hooks")
 				for _, hook := range testsuite.BeforeSuiteHooks() {

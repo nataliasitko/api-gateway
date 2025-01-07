@@ -125,6 +125,15 @@ func (s *scenario) templateValueIsSetTo(key, value string) {
 	s.ManifestTemplate[key] = value
 }
 
+func (s *scenario) theAPIRuleTemplateFileIsSetTo(templateFileName string) {
+	s.ManifestTemplate["NamePrefix"] = strings.TrimRight(templateFileName, ".yaml")
+	s.ApiResourceManifestPath = templateFileName
+}
+
+func (s *scenario) templateValueIsSetTo(key, value string) {
+	s.ManifestTemplate[key] = value
+}
+
 func (s *scenario) theAPIRuleV2Alpha1IsAppliedExpectError(errorMessage string) error {
 	res, err := manifestprocessor.ParseSingleEntryFromFileWithTemplate(s.ApiResourceManifestPath, s.ApiResourceDirectory, s.ManifestTemplate)
 	if err != nil {
