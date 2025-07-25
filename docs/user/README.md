@@ -1,5 +1,7 @@
 # API Gateway Module
 
+Use the API Gateway module to expose and secure APIs.
+
 >[!WARNING] The APIRule CustomResourceDefinition (CRD) in version v1beta1 has been deprecated and scheduled for deletion. If you use APIRule custom resources (CRs) v1beta1, you must migrate to version v2. See [APIRule v1beta1 Deletion Timeline](./apirule-migration/README.md#apirule-v1beta1-deletion-timeline) and [How to Migrate APIRules to Version v2](./apirule-migration/README.md#how-to-migrate-apirules-to-version-v2).
 
 ## What Is API Gateway?
