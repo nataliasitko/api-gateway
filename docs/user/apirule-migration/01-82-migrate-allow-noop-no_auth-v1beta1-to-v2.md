@@ -99,7 +99,13 @@ The example uses an HTTPBin service, exposing the `/anything`, `/headers`, and `
     >
     > For more information, see the [Changes Introduced in APIRule `v2`](../custom-resources/apirule/04-70-changes-in-apirule-v2.md) document. **Read this document before applying the new APIRule `v2`.**
 
-3. To update the APIRule to version `v2`, apply the adjusted configuration. 
+
+3. If you use more than one APIRule `v1beta1` that targets the same workload, repeat steps one and two for each of the APIRules.
+
+4. To update the APIRule to version `v2`, apply the adjusted configuration. If multiple `v1beta1` APIRules point to the same workload, you must apply all the updated configurations simultaneously.
+   
+   > [!WARNING]
+   > It is not supported to use both `v2` and `v1beta1` APIRules simultaneously if they target the same workload. To avoid downtime, update all APIRules targeting the same workload at once.
 
    To verify the version of the applied APIRule, check the value of the `gateway.kyma-project.io/original-version` annotation in the APIRule **spec**. If the APIRule has been successfully migrated, you see the value `v2`. Use the following command:
     ```bash 
@@ -117,7 +123,7 @@ The example uses an HTTPBin service, exposing the `/anything`, `/headers`, and `
 
     > [!WARNING] Do not manually change the `gateway.kyma-project.io/original-version` annotation. This annotation is automatically updated when you apply your APIRule in version `v2`. Modifying the annotation's value manually causes your APIRule `v1beta1` to be handled and configured as version `v2`, potentially leading to reconciliation errors.
 
-4. To preserve the internal traffic policy from the APIRule `v1beta1`, you must apply the following AuthorizationPolicy. 
+5. To preserve the internal traffic policy from the APIRule `v1beta1`, you must apply the following AuthorizationPolicy. 
 
    In APIRule `v2`, internal traffic is blocked by default. Without this AuthorizationPolicy, attempts to connect internally to the workload will result in an `RBAC: access denied` error. Ensure that the selector label is updated to match the target workload.
 

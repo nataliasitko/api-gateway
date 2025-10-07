@@ -19,43 +19,7 @@ APIRule in version `v1beta1` is deprecated and scheduled for removal. Once the A
 
 In this example, the APIRule `v1beta1` was created with the **oauth2_introspection** handler, so the migration targets an APIRule `v2` using the **extAuth** handler. To illustrate the migration, the HTTPBin service is used, exposing the `/anything` and `/.*` endpoints. The HTTPBin service is deployed in its own namespace, with Istio enabled, ensuring the workload is part of the Istio service mesh.
 
-1. Retrieve a configuration of the APIRule in version `v1beta1` and save it for further modifications. For instructions, see [Retrieve the Complete **spec** of an APIRule in Version `v1beta1`](./01-81-retrieve-v1beta1-spec.md). 
-
-   See a sample of the retrieved **spec** in the YAML format. 
-   The following configuration uses the **oauth2_introspection** handler to expose HTTPBin service's `/anything` and `/.*` endpoints:
-    ```yaml
-    host: httpbin.local.kyma.dev
-    service:
-      name: httpbin
-      namespace: test
-      port: 8000
-    gateway: kyma-gateway.kyma-system
-    rules:
-      - path: /anything
-        methods:
-          - POST
-        accessStrategies:
-          - handler: oauth2_introspection
-            config:
-              introspection_request_headers:
-                Authorization: Basic {ENCODED_CREDENTIALS}
-              introspection_url: https://{IAS_TENANT}.accounts.ondemand.com/oauth2/introspect
-              required_scope:
-                - write
-      - path: /.*
-        methods:
-          - GET
-        accessStrategies:
-          - handler: oauth2_introspection
-            config:
-              introspection_request_headers:
-                Authorization: Basic {ENCODED_CREDENTIALS}
-              introspection_url: https://{IAS_TENANT}.accounts.ondemand.com/oauth2/introspect
-              required_scope:
-                - read
-    ```
-
-2. In order for the `extAuth` handler in APIRule `v2` to work, you must first deploy a service that acts as an external authorizer for Istio. The following instructions use [OAuth2 Proxy](https://oauth2-proxy.github.io/oauth2-proxy/) with an OAuth2.0-compliant authorization server supporting OIDC discovery.
+1. In order for the `extAuth` handler in APIRule `v2` to work, you must first deploy a service that acts as an external authorizer for Istio. The following instructions use [OAuth2 Proxy](https://oauth2-proxy.github.io/oauth2-proxy/) with an OAuth2.0-compliant authorization server supporting OIDC discovery.
 
    1. Replace the placeholders and create the `values.yaml` file with the OAuth2 Proxy configuration.
       ```yaml
@@ -116,6 +80,41 @@ In this example, the APIRule `v1beta1` was created with the **oauth2_introspecti
       ```bash
       kubectl patch istio -n kyma-system default --type merge --patch '{"spec":{"config":{"authorizers":[{"name":"oauth2-proxy","port":80,"service":"oauth2-proxy.oauth2-proxy.svc.cluster.local","headers":{"inCheck":{"include":["x-forwarded-for", "cookie", "authorization"]}}}]}}}'
       ```
+2. Retrieve a configuration of the APIRule in version `v1beta1` and save it for further modifications. For instructions, see [Retrieve the Complete **spec** of an APIRule in Version `v1beta1`](./01-81-retrieve-v1beta1-spec.md). 
+
+   See a sample of the retrieved **spec** in the YAML format. 
+   The following configuration uses the **oauth2_introspection** handler to expose HTTPBin service's `/anything` and `/.*` endpoints:
+    ```yaml
+    host: httpbin.local.kyma.dev
+    service:
+      name: httpbin
+      namespace: test
+      port: 8000
+    gateway: kyma-gateway.kyma-system
+    rules:
+      - path: /anything
+        methods:
+          - POST
+        accessStrategies:
+          - handler: oauth2_introspection
+            config:
+              introspection_request_headers:
+                Authorization: Basic {ENCODED_CREDENTIALS}
+              introspection_url: https://{IAS_TENANT}.accounts.ondemand.com/oauth2/introspect
+              required_scope:
+                - write
+      - path: /.*
+        methods:
+          - GET
+        accessStrategies:
+          - handler: oauth2_introspection
+            config:
+              introspection_request_headers:
+                Authorization: Basic {ENCODED_CREDENTIALS}
+              introspection_url: https://{IAS_TENANT}.accounts.ondemand.com/oauth2/introspect
+              required_scope:
+                - read
+    ```
 
 3. Adjust the obtained configuration of the APIRule to use the **extAuth** handler in version `v2`. 
 The following APIRule example delegates token validation to the previously configured OAuth2 Proxy. Existing tokens stay valid throughout the migration, ensuring that the process does not disrupt any exposed or secured workloads.
@@ -163,7 +162,13 @@ The following APIRule example delegates token validation to the previously confi
     >
     > For more information, see [Changes Introduced in APIRule `v2`](../custom-resources/apirule/04-70-changes-in-apirule-v2.md).
 
-4. Update the APIRule to version `v2` by applying the adjusted configuration. 
+
+4. If you use more than one APIRule `v1beta1` that target the same workload, repeat steps two and three for each of the APIRules.
+
+5. To update the APIRule to version `v2`, apply the adjusted configuration. If multiple `v1beta1` APIRules point to the same workload, you must apply all the updated configurations simultaneously.
+   
+   > [!WARNING]
+   > It is not supported to use both `v2` and `v1beta1` APIRules simultaneously if they target the same workload. To avoid downtime, update all APIRules targeting the same workload at once.
 
    To verify the version of the applied APIRule, check the value of the `gateway.kyma-project.io/original-version` annotation in the APIRule **spec**. A value of `v2` indicates that the APIRule has been successfully migrated. To see the value, run:
     ```bash 
@@ -181,7 +186,7 @@ The following APIRule example delegates token validation to the previously confi
 
     > [!WARNING] Do not manually change the `gateway.kyma-project.io/original-version` annotation. This annotation is automatically updated when you apply your APIRule in version `v2`.
 
-5. To preserve the internal traffic policy from the APIRule `v1beta1`, you must apply the following AuthorizationPolicy. 
+1. To preserve the internal traffic policy from the APIRule `v1beta1`, you must apply the following AuthorizationPolicy. 
 
    In APIRule `v2`, internal traffic is blocked by default. Without this AuthorizationPolicy, attempts to connect internally to the workload will result in an `RBAC: access denied` error. Ensure that the selector label is updated to match the target workload.
 
@@ -206,7 +211,7 @@ The following APIRule example delegates token validation to the previously confi
             notPrincipals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
     ```
 
-6. To retain the CORS configuration from the APIRule `v1beta1`, update the APIRule in version `v2` to include the same CORS settings. 
+2. To retain the CORS configuration from the APIRule `v1beta1`, update the APIRule in version `v2` to include the same CORS settings. 
 
     For preflight requests to work correctly, you must explicitly add the `"OPTIONS"` method to the **rules.methods** field of your APIRule `v2`. For guidance, see the [APIRule `v2` examples](../custom-resources/apirule/04-10-apirule-custom-resource.md#sample-custom-resource).
 

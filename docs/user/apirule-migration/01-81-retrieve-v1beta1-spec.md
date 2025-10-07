@@ -7,6 +7,34 @@ APIRule in version `v1beta1` is deprecated and scheduled for removal. Once the A
 
 This creates a migration challenge: If your APIRule was originally created using `v1beta1` and you have not yet migrated to `v2`, you may notice that the **spec** is missing the **rules** field when viewed via the `kubectl get` command. Kyma dashboard does not display APIRules in version `v1beta1`.
 
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sleep
+  annotations:
+    sidecar.istio.io/nativeSidecar: "true"
+spec:
+  restartPolicy: Never
+  containers:
+  - name: sleep
+    image: istio/base
+    command: ["/bin/sleep", "1"]
+EOF
+
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sleep
+spec:
+  restartPolicy: Never
+  containers:
+  - name: sleep
+    image: istio/base
+    command: ["/bin/sleep", "3"]
+EOF
+
 For example, suppose you have applied the following APIRule in version `v1beta1`:
 ```yaml
 apiVersion: gateway.kyma-project.io/v1beta1
