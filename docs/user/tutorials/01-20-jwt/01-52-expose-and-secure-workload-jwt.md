@@ -16,9 +16,6 @@ This tutorial shows how to expose and secure Services using APIGateway Controlle
   > [!TIP]
   > To learn what the default domain of your Kyma cluster is, run `kubectl get gateway -n kyma-system kyma-gateway -o jsonpath='{.spec.servers[0].hosts}'`.
 
-* You have a JSON Web Token. See [Obtain a JWT](../01-50-expose-and-secure-a-workload/01-51-get-jwt.md).
-* To use CLI instructions, you must install [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl) and [curl](https://curl.se/). Alternatively, you can use Kyma dashboard.
-
 
 ## Steps
 
