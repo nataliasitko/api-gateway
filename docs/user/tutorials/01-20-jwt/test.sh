@@ -160,8 +160,8 @@ response=$(curl -s -X POST "$TOKEN_ENDPOINT" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "Authorization: Basic $ENCODED_CREDENTIALS")
 
-access_token=$(echo $response | jq -r '.access_token')
-echo JWT: $access_token
+ACCESS_TOKEN=$(echo $response | jq -r '.access_token')
+echo JWT token: $ACCESS_TOKEN
 
 echo "Create Deployment"
 cat <<EOF | kubectl apply -f -
@@ -246,10 +246,10 @@ kubectl wait -n test apirule httpbin-tls --for=jsonpath='{.status.state}=Ready' 
 
 echo "Call APIRule without JWT"
 curl -ik -X GET https://${WORKLOAD_DOMAIN}/headers
+# you get 403
 
 echo "Call APIRule using JWT"
 curl -ik -X GET https://${WORKLOAD_DOMAIN}/headers --header "Authorization:Bearer $ACCESS_TOKEN"
-
 
 #HTTP/2 200
 #server: istio-envoy
