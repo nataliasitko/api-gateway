@@ -1,23 +1,32 @@
-# Expose and Secure a Workload with JWT
+# Expose and Secure a Workload with JWT Using SAP Cloud Identity Services
 
-This tutorial shows how to expose and secure Services using APIGateway Controller. One of the API Gateway module's controllers reacts to an instance of the APIRule custom resource (CR) and creates an Istio [VirtualService](https://istio.io/latest/docs/reference/config/networking/virtual-service/), [Authorization Policy](https://istio.io/latest/docs/reference/config/security/authorization-policy/) and [Request Authentication](https://istio.io/latest/docs/reference/config/security/request_authentication/) according to the details specified in the CR.
+This guide explains how to publish a backend workload on a custom domain over HTTPS and secure every call with JSON Web Tokens (JWT) issued by SAP Cloud Identity Services using the Client Credentials grant. It focuses on non‑interactive, machine identities: scripts, partner systems, microservices, and automation jobs that need a verifiable, short‑lived credential rather than a static API key or a user session.
 
 ## Prerequisites
 
 - You have a SAP BTP, Kyma runtime instance with Istio and API Gateway modules added. The Istio and API Gateway modules are added to your Kyma cluster by default.
 - You have an SAP Cloud Identity Services tenant. See [Initial Setup](https://help.sap.com/docs/cloud-identity-services/cloud-identity-services/initial-setup?locale=en-US&version=Cloud&q=open+id+connect).
 
+## Context
+Use this procedure when you need service‑to‑service authentication for a backend API. Typical cases include scheduled jobs, microservices calling each other, partner system integrations, or internal automation where distributing client certificates (mTLS) would be cumbersome.
 
-## Configure TLS a Gateway for Your Custm Domain
+To configure the flow in Kyma, you must first provide credentials for a supported DNS provider so Gardener can create and verify the necessary DNS records for your custom wildcard domain. After this, Let’s Encrypt issues a trusted TLS certificate. The issued certificate is stored in a Kubernetes Secret referenced by an Istio Gateway, which terminates HTTPS at the cluster edge so all downstream traffic enters encrypted.
 
-### Procedure
+Separately, you register an OpenID Connect (OIDC) application in SAP Cloud Identity Services and enable the Client Credentials grant. This generates a client ID (public identifier) and a client secret (confidential credential). A calling system sends these credentials to the OIDC token endpoint over TLS, receiving a signed JWT access token.
+
+When the client calls your exposed API, it includes the token in the Authorization header using the Bearer scheme. The API Gateway module uses validates the token based on the configuration you include in the APIRule custom resource (CR). If the validation fails, the Gateway returns HTTP 401 Unauthorized without forwarding the request to the backend.
+
+If the validation is successful, the request proceeds to the Service behind the Gateway. At that point you can implement optional, deeper authorization (examining scopes, audience, or custom claims) inside your application code.
+
+## Configure a TLS Gateway for Your Custom Domain
+
 1. Create a namespace with enabled Istio sidecar proxy injection.
 
     ```bash
     kubectl create ns test
     kubectl label namespace test istio-injection=enabled --overwrite
     ```
-2. Export the following domain names as enviroment variables. Replace `my-own-domain.example.com` with the name of your domain.
+2. Export the following domain names as environment variables. Replace `my-own-domain.example.com` with the name of your domain. You can adjust these values as needed.
 
     ```bash
     PARENT_DOMAIN="my-own-domain.example.com"
@@ -37,6 +46,7 @@ This tutorial shows how to expose and secure Services using APIGateway Controlle
 
     The information you provide to the data field differs depending on the DNS provider you're using. The DNS provider must be supported by Gardener. To learn how to configure the Secret for a specific provider, follow [External DNS Management Guidelines](https://github.com/gardener/cert-management?tab=readme-ov-file#using-commonname-and-optional-dnsnames).
     See an example Secret for AWS Route 53 DNS provider. **AWS_ACCESS_KEY_ID** and **AWS_SECRET_ACCESS_KEY** are base-64 encoded credentials.
+
     ```bash
     apiVersion: v1
     kind: Secret
@@ -48,17 +58,15 @@ This tutorial shows how to expose and secure Services using APIGateway Controlle
       AWS_ACCESS_KEY_ID: ...
       AWS_SECRET_ACCESS_KEY: ...
       # Optionally, specify the region
-      #AWS_REGION: {YOUR_SECRET_ACCESS_KEY
+  #AWS_REGION: {YOUR_SECRET_ACCESS_KEY}
       # Optionally, specify the token
       #AWS_SESSION_TOKEN: ...
-    EOF
     ```
 4. Create a DNSProvider resource that references the Secret with your DNS provider's credentials.
 
    See an example Secret for AWS Route 53 DNS provider:
 
     ```bash
-    cat <<EOF | kubectl apply -f -
     apiVersion: dns.gardener.cloud/v1alpha1
     kind: DNSProvider
     metadata:
@@ -66,12 +74,11 @@ This tutorial shows how to expose and secure Services using APIGateway Controlle
       namespace: default
     spec:
       type: aws-route53
-      ecretRef:
+  secretRef:
         name: aws-credentials
       domains:
         include:
         - "${PARENT_DOMAIN}"
-    EOF
     ```
 5. Get the external access point of the `istio-ingressgateway` Service. The external access point is either stored in the ingress Gateway's **ip** field (for example, on GCP) or in the ingress Gateway's **hostname** field (for example, on AWS).
     ```bash
@@ -116,7 +123,7 @@ This tutorial shows how to expose and secure Services using APIGateway Controlle
         name: garden
     EOF
     ```
-    To verify that the Scret with Gateway certificates is created, run:
+  To verify that the Secret with Gateway certificates is created, run:
    
     ```bash
     kubectl get secret -n istio-system "${GATEWAY_SECRET}"
@@ -148,7 +155,8 @@ This tutorial shows how to expose and secure Services using APIGateway Controlle
     EOF
     ```
 
-### 2. Configure OpenID Connect application
+### Create and Configure OpenID Connect Application
+You need an identity provider to issue JWTs. Creating an OpenID Connect application allows SAP Cloud Identity Services to act as your issuer and manage authentication for your workloads.
 
 1. Sign in to the administration console for SAP Cloud Identity Services.
 
@@ -159,7 +167,6 @@ This tutorial shows how to expose and secure Services using APIGateway Controlle
    3. Choose **+Create**.
 
 3. Configure OpenID Connect Application for the Client Credentials flow.
-   //czy to powinno być client credentials flow czy jwt bearer flow
    
    1. In the **Trust > Single Sign-On** section of your created application, choose **OpenID Connect Configuration**.
    2. Provide the name.
@@ -175,7 +182,7 @@ This tutorial shows how to expose and secure Services using APIGateway Controlle
    4. Choose **Save**.
       Your client ID and secret appear in a pop up window. Save the secret as you will not be able to retrieve it from the system later.
 
-### 3. Get a JWT token
+### Get a JWT Token
 
 1. Export the following values as environment variables:
       ```bash
@@ -231,40 +238,22 @@ To configure JWT authentication, expose your workload using APIRule custom resou
 
 #### **kubectl**
 
-To expose and secure your Service, create the following APIRule:
+To expose and secure your Service, create the APIRule custom resource. In the rules section define the **jwt** field and specify the issuer and jwksUri.
 
 ```bash
-cat <<EOF | kubectl apply -f -
-apiVersion: gateway.kyma-project.io/v2
-kind: APIRule
-metadata:
-  name: apirule-jwt-example
-  namespace: test
-spec:
-  hosts:
-    - httpbin.mtls.my-domain.com
-  service:
-    name: {SERVICE_NAME}
-    port: {SERVICE_PORT}
-  gateway: {GATEWAY_NAME}/{GATEWAY_NAMESPACE}
+...
   rules:
     - jwt:
         authentications:
-          - issuer: {ISSUER}
-            jwksUri: {JWKS_URI}
-      methods:
-        - GET
-      path: /*
-EOF
+          - issuer: ${ISSUER}
+            jwksUri: ${JWKS_URI}
+...
 ```
 <!-- tabs:end -->
 
-See the followign example of a sample HTTPBin Deployment exposed by an APIRule with JWT authentication:
+See the following example of a sample HTTPBin Deployment exposed by an APIRule with JWT authentication:
 
-1. Create a sample HTTPBin Deployment:
-
-```bash
-cat <<EOF | kubectl apply -f -
+```yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -311,13 +300,9 @@ spec:
         name: httpbin
         ports:
         - containerPort: 80
-EOF
 ```
 
-2. Create an APIRule to expose the sample Delployment and configure the JWT authentication:
-
-```bash
-cat <<EOF | kubectl apply -f -
+```yaml
 apiVersion: gateway.kyma-project.io/v2
 kind: APIRule
 metadata:
@@ -338,13 +323,9 @@ spec:
   service:
     name: httpbin
     port: 8000
-EOF
 ```
 
-
-### Access the Secured Resources
-
-1. To call the endpoint, send a `GET` request to the HTTPBin Service.
+2. To test the connection, first do not provide the JWT token.
 
     ```bash
     curl -ik -X GET https://{SUBDOMAIN}.{DOMAIN_NAME}/headers
