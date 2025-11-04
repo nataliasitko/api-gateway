@@ -8,7 +8,6 @@ OS_ARCH ?= $(shell uname -m)
 
 # Operating system type
 OS_TYPE ?= $(shell uname)
-HUB ?= gcr.io/istio-testing
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.31.0
@@ -264,8 +263,3 @@ get-latest-release:
 .PHONY: perf-test
 perf-test:
 	cd performance_tests && ./test.sh
-
-####### Docu Tests ###########
-.PHONY: docu-test
-docu-test:
-	cd scripts && ./run-tests.sh
